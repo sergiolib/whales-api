@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+django-oauth-toolkit = "*"
+djangorestframework = "*"
+mysqlclient = "*"
+djangorestframework-jwt = "*"
+cryptography = "*"
+pyjwt = "*"
+python-dotenv = "*"
+python-jose = "*"
+google-auth = "*"
+django-cors-headers = "*"
+django-rest-auth = "*"
+django-allauth = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"
