@@ -1,3 +1,4 @@
+import matplotlib
 import sys
 sys.path.append('../ballenas/src/')
 
@@ -17,23 +18,30 @@ class GettersData:
         short_names = {}
         descriptions = {}
         parameters = {}
+        options = {}
         for a in self.data:
-            short_names[a] = self.data[a]().short_name
-            descriptions[a] = self.data[a]().description
-            params = parameters[a] = self.data[a]().parameters
+            matplotlib.use("Agg")
+            instance = self.data[a]()
+            print(a)
+            short_names[a] = instance.short_name
+            descriptions[a] = instance.description
+            params = parameters[a] = instance.parameters
+            opts = options[a] = instance.parameters_options
 
             # Check that parameters are showable
 
             for p in list(params.keys()):
                 if type(params[p]) in [str, int, float, bool, list, dict]:
                     params[p] = {"value": params[p],
-                                 "type": type(params[p]).__name__}
+                                 "type": type(params[p]).__name__,
+                                 "options": opts[p] if p in opts else None}
                 else:
                     del params[p]
 
-        res = {a: {
+        res = [{
+            "name": a,
             "short_name": short_names[a],
             "description": descriptions[a],
             "parameters": parameters[a],
-        } for a in self.data}
+        } for a in self.data]
         return res
