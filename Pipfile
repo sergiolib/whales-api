@@ -17,6 +17,9 @@ google-auth = "*"
 django-cors-headers = "*"
 django-rest-auth = "*"
 django-allauth = "*"
+jsonfield = "*"
+matplotlib = "*"
+scikit-learn = "*"
 
 [dev-packages]
 

@@ -4,3 +4,4 @@ from . import models
 from django.contrib import admin
 admin.site.register(Permission)
 admin.site.register(models.User, UserAdmin)
+admin.site.register(models.Pipeline)
