@@ -4,6 +4,7 @@ import json
 from os import makedirs, remove
 from os.path import join
 
+from django_celery_results.models import TaskResult
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from api.getters import GettersData
@@ -220,6 +221,11 @@ class UsersPipelinesView(APIView):
             except KeyError:
                 return Response(data=f"Pipeline name not submitted in the request", status=402)
             q.parameters = request.data['parameters']
+            try:
+                TaskResult.objects.get(task_id=q.task_id).delete()
+            except:
+                pass
+            q.task_id = ""  # Reset execution
             q.save()
 
         return Response(data="ok")
@@ -258,4 +264,59 @@ class UsersPipelinesRenameView(APIView):
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         q.name = request.data["new_pipeline_name"]
         q.save()
+        return Response()
+
+
+class UsersPipelinesProcessView(APIView):
+    def post(self, request):
+        """Launch a new pipeline"""
+        try:
+            q = models.Pipeline.objects.get(owner=request.user, name=request.data["pipeline_name"])
+        except models.Pipeline.DoesNotExist:
+            return Response(data=f"Pipeline named {request.data['pipeline_name']} does not exist", status=401)
+        except KeyError:
+            return Response(data=f"Pipeline name not submitted in the request", status=402)
+        # Launch pipeline asyncronously
+        location = join(settings.MEDIA_ROOT, q.owner.username, "executed_pipelines")
+        makedirs(location, exist_ok=True)
+        from . import celery
+        task = celery.launch_pipeline.delay(q.pipeline_type, q.parameters, join(location, q.name))
+        q.task_id = task.task_id
+        q.save()
+        return Response()
+
+    def get(self, request):
+        """Get the pipeline state"""
+        try:
+            q = models.Pipeline.objects.get(owner=request.user, name=request.query_params["pipeline_name"])
+        except models.Pipeline.DoesNotExist:
+            return Response(data=f"Pipeline named {request.query_params['pipeline_name']} does not exist", status=401)
+        except KeyError:
+            return Response(data=f"Pipeline name not submitted in the request", status=402)
+        if q.task_id == '':
+            return Response(data=0)
+        task_result = TaskResult.objects.get(task_id=q.task_id)
+        if task_result.status == "SUCCESS":
+            return Response(data=3)
+        elif task_result.status == "FAILURE":
+            return Response(data=2)
+        elif task_result.status == "STARTED":
+            return Response(data=1)
+
+
+class UsersPipelinesLogsView(APIView):
+    def get(self, request):
+        """Get the pipeline state"""
+        try:
+            q = models.Pipeline.objects.get(owner=request.user, name=request.query_params["pipeline_name"])
+        except models.Pipeline.DoesNotExist:
+            return Response(data=f"Pipeline named {request.query_params['pipeline_name']} does not exist", status=401)
+        except KeyError:
+            return Response(data=f"Pipeline name not submitted in the request", status=402)
+        if q.task_id == '':
+            return Response(data=[])
+        try:
+            l = join(settings.MEDIA_ROOT, q.owner.username, "executed_pipelines", q.name)
+        except:
+            pass
         return Response()

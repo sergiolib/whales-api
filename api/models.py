@@ -12,6 +12,7 @@ class Pipeline(models.Model):
     name = models.CharField(max_length=1000)
     pipeline_type = models.CharField(max_length=100, blank=False)
     parameters = JSONField(blank=False)
+    task_id = models.CharField(default="", max_length=100)
 
     def __str__(self):
         return f"{self.name} ({self.owner})"

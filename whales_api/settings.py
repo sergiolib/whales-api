@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -172,3 +173,5 @@ CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
                       'cache-control')
 
 CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH")
+
+CELERY_RESULT_BACKEND = 'django-db'

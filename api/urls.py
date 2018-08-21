@@ -7,6 +7,8 @@ urlpatterns = [
     path('data_files_types/', views.DataFilesView.as_view()),
     path('pipelines/', views.PipelinesView.as_view()),
     path('user_pipelines/', views.UsersPipelinesView.as_view()),
+    path('user_pipelines/launch', views.UsersPipelinesProcessView.as_view()),
+    path('user_pipelines/logs', views.UsersPipelinesLogsView.as_view()),
     path('user_pipelines/duplicate', views.UsersPipelinesDuplicateView.as_view()),
     path('user_pipelines/rename', views.UsersPipelinesRenameView.as_view()),
     path('features_extractors/', views.FeaturesExtractorsView.as_view()),

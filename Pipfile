@@ -20,6 +20,8 @@ django-allauth = "*"
 jsonfield = "*"
 matplotlib = "*"
 scikit-learn = "*"
+celery = "*"
+django-celery-results = "*"
 
 [dev-packages]
 
