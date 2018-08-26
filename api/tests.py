@@ -1,4 +1,9 @@
 import random
+import sys
+from django.conf import settings
+sys.path.append(settings.WHALES_BACKEND)
+
+from whales.utilities.testing import get_labeled
 from os import makedirs
 from os.path import join, dirname
 
@@ -10,8 +15,7 @@ from api.models import User, Pipeline
 from api.views import UsersPipelinesLoadParameterView, UsersPipelinesSaveParameterView, \
     GetScopeOptionsView, UsersPipelinesCreateView, UsersPipelinesView, \
     UsersPipelinesDuplicateView, UsersPipelinesRenameView, UsersPipelinesLogsView, \
-    UsersPipelinesDeleteView
-from django.conf import settings
+    UsersPipelinesDeleteView, UsersPipelinesProcessView
 
 
 class WhalesAPI(TestCase):
@@ -251,3 +255,58 @@ class WhalesAPI(TestCase):
         client.put(store_url,
                    {'file': SimpleUploadedFile(name="hello", content=b"1234")})
         response = client.get(get_url)
+
+    # def test_launch_pipeline(self):
+    #     factory = APIRequestFactory()
+    #     user = User.objects.get(username='test')
+    #     view = UsersPipelinesProcessView.as_view()
+    #     labeled = get_labeled()
+    #     p = Pipeline(
+    #         name="real_working_pipeline",
+    #         parameters={
+    #             "machine_learning": {
+    #                 "method": "svm",
+    #                 "type": "supervised",
+    #             },
+    #             "input_data": [
+    #                 {
+    #                     "file_name": labeled[0],
+    #                     "data_file": "audio",
+    #                     "formatter": "aif",
+    #                 }
+    #             ],
+    #             "input_labels": [
+    #                 {
+    #                     "labels_file": labeled[1],
+    #                     "labels_formatter": "csv",
+    #                 }
+    #             ],
+    #             "features_extractors": [
+    #                 {
+    #                     "method": "mfcc"
+    #                 }
+    #             ],
+    #             "pre_processing": [
+    #                 {
+    #                     "method": "sliding_windows"
+    #                 }
+    #             ],
+    #         },
+    #         pipeline_type="Training pipeline",
+    #         owner=user,
+    #     )
+    #     p.save()
+    #     request = factory.post('',
+    #                            data={
+    #                                "pipeline_name": "real_working_pipeline",
+    #                            },
+    #                            format="json")
+    #     force_authenticate(request, user=user)
+    #     response = view(request)
+    #
+    #     factory = APIRequestFactory()
+    #     request = factory.get('?pipeline_name=real_working_pipeline',
+    #                           format="json")
+    #     force_authenticate(request, user=user)
+    #     response = view(request)
+    #     pass

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django_celery_results.models import TaskResult
 from jsonfield import JSONField
 
 
@@ -12,7 +13,7 @@ class Pipeline(models.Model):
     name = models.CharField(max_length=1000)
     pipeline_type = models.CharField(max_length=100, blank=False)
     parameters = JSONField(blank=False, default={})
-    task_id = models.CharField(default="", max_length=100)
+    task = models.ForeignKey(TaskResult, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"{self.name} ({self.owner})"

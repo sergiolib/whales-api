@@ -91,10 +91,10 @@ class UsersPipelinesSaveParameterView(APIView):
         except KeyError:
             return Response()
         try:
-            TaskResult.objects.get(task_id=q.task_id).delete()
+            TaskResult.objects.get(task_id=q.task.task_id).delete()
         except TaskResult.DoesNotExist:
             pass
-        q.task_id = ""  # Reset execution
+        q.task = None  # Reset execution
         q.save()
         return Response()
 
@@ -102,9 +102,10 @@ class UsersPipelinesSaveParameterView(APIView):
 class UsersPipelinesDuplicateView(APIView):
     def post(self, request):
         try:
-            q = models.Pipeline.objects.get(owner=request.user, name=request.data["pipeline_name"])
+            pipeline_name = request.data['pipeline_name']
+            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
         except models.Pipeline.DoesNotExist:
-            return Response(data=f"Pipeline named {request.data['pipeline_name']} does not exist", status=401)
+            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         new_q = models.Pipeline(name=q.name + "_duplicate", owner=q.owner, parameters=q.parameters, pipeline_type=q.pipeline_type)
@@ -115,9 +116,10 @@ class UsersPipelinesDuplicateView(APIView):
 class UsersPipelinesRenameView(APIView):
     def post(self, request):
         try:
-            q = models.Pipeline.objects.get(owner=request.user, name=request.data["pipeline_name"])
+            pipeline_name = request.data['pipeline_name']
+            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
         except models.Pipeline.DoesNotExist:
-            return Response(data=f"Pipeline named {request.data['pipeline_name']} does not exist", status=401)
+            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         q.name = request.data["new_pipeline_name"]
@@ -129,17 +131,24 @@ class UsersPipelinesProcessView(APIView):
     def post(self, request):
         """Launch a new pipeline"""
         try:
-            q = models.Pipeline.objects.get(owner=request.user, name=request.data["pipeline_name"])
+            pipeline_name = request.data['pipeline_name']
+            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
         except models.Pipeline.DoesNotExist:
-            return Response(data=f"Pipeline named {request.data['pipeline_name']} does not exist", status=401)
+            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
+
         # Launch pipeline asyncronously
         location = join(settings.MEDIA_ROOT, q.owner.username, "pipelines")
         makedirs(location, exist_ok=True)
         from .. import celery
-        task = celery.launch_pipeline(q.pipeline_type, q.parameters, join(location, q.name))
-        q.task_id = task.task_id
+        task = celery.launch_pipeline.delay(q.pipeline_type, q.parameters, join(location, q.name))
+
+        # Doesn't work in test, anyway
+        try:
+            q.task = TaskResult.objects.get(task_id=task.id)
+        except TaskResult.DoesNotExist:
+            pass
         q.save()
         return Response()
 
@@ -152,9 +161,9 @@ class UsersPipelinesProcessView(APIView):
             return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
-        if q.task_id == '':
+        if q.task is None:
             return Response(data=0)
-        task_result = TaskResult.objects.get(task_id=q.task_id)
+        task_result = TaskResult.objects.get(task_id=q.task.task_id)
         if task_result.status == "SUCCESS":
             return Response(data=3)
         elif task_result.status == "FAILURE":
@@ -167,9 +176,10 @@ class UsersPipelinesLogsView(APIView):
     def get(self, request):
         """Get the pipeline state"""
         try:
-            q = models.Pipeline.objects.get(owner=request.user, name=request.query_params["pipeline_name"])
+            pipeline_name = request.query_params['pipeline_name']
+            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
         except models.Pipeline.DoesNotExist:
-            return Response(data=f"Pipeline named {request.query_params['pipeline_name']} does not exist", status=401)
+            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         l = join(settings.MEDIA_ROOT, q.owner.username, "pipelines", q.name, "messages.log")

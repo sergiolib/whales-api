@@ -26,14 +26,14 @@ app.autodiscover_tasks()
 
 
 @app.task(name="launch-pipeline")
-def launch_pipeline(pipeline_desc, pipeline_parameters, output_directoy):
+def launch_pipeline(pipeline_desc, pipeline_parameters, output_directory):
     av = backend_getters.get_available_pipelines()
     for pipeline_type, pipeline_cls in av.items():
         p = pipeline_cls()
         if pipeline_cls().description == pipeline_desc:
             break
-    pipeline_parameters = fix_pipeline_parameters(pipeline_parameters)
-    pipeline_parameters["output_directory"] = output_directoy
+    # pipeline_parameters = fix_pipeline_parameters(pipeline_parameters)
+    pipeline_parameters["output_directory"] = output_directory
     p.load_parameters(pipeline_parameters)
     p.initialize()
     p.start()
@@ -59,9 +59,9 @@ def fix_machine_learning_parameters(machine_learning_parameters):
     if len(machine_learning_parameters['value']) == 0:
         return {}
     new_params = {
-        'method': machine_learning_parameters['value']['name'],
+        'method': machine_learning_parameters['value']['method'],
         'type': machine_learning_parameters['value']['type'],
-        'parameters': fix_lower_level_parameters(machine_learning_parameters['value']['parameters'])
+        'parameters': fix_lower_level_parameters(machine_learning_parameters['value'].get('parameters', {}))
     }
     return new_params
 

@@ -10,5 +10,7 @@ def pipeline_default_parameters(sender, instance, **kwargs):
         default_parameters = getters.GettersData("pipelines").to_list()
         default_parameters = [i["parameters"]
                               for i in default_parameters
-                              if i["description"] == instance.pipeline_type][0]
-        instance.parameters = default_parameters
+                              if i["description"] == instance.pipeline_type]
+        if len(default_parameters) == 0:
+            raise AttributeError("Pipeline's description doesn't match any known pipeline type")
+        instance.parameters.update(default_parameters[0])

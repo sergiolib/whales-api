@@ -1,6 +1,7 @@
 import matplotlib
+from django.conf import settings
 import sys
-sys.path.append('../ballenas/src/')
+sys.path.append(settings.WHALES_BACKEND)
 
 from whales.modules.pipelines import getters as backend_getters
 straight_forward = ['formatters', 'pre_processing', 'features_extractors', 'pipelines', 'data_files',
@@ -15,46 +16,34 @@ class GettersData:
             self.data = eval(f'backend_getters.get_available_{src}()')
 
     def to_list(self):
+        matplotlib.use("Agg")
         descriptions = {}
         parameters = {}
         options = {}
-        t = {}
+        tt = {}
         for a in self.data:
-            matplotlib.use("Agg")
-            if type(self.data[a]) is not dict:
-                instance = self.data[a]()
-                descriptions[a] = instance.description
-                params = parameters[a] = instance.parameters
-                opts = options[a] = instance.parameters_options
+            instance = self.data[a]()
+            descriptions[a] = instance.description
+            params = parameters[a] = instance.parameters
+            opts = options[a] = instance.parameters_options
+            t = tt[a] = instance.type if hasattr(instance, "type") else None
 
-                # Check that parameters are showable
-                for p in list(params.keys()):
-                    t = type(params[p])
-                    if t in [str, int, float, bool, list, dict]:
-                        params[p] = {"value": params[p],
-                                     "type": p if t not in [str, int, float, bool] else t.__name__,
-                                     "options": opts[p] if p in opts else None}
-                    else:
-                        del params[p]
-            else:
-                for b in self.data[a]:
-                    instance = self.data[a][b]()
-                    descriptions[b] = instance.description
-                    params = parameters[b] = instance.parameters
-                    opts = options[b] = instance.parameters_options
-
-                    # Check that parameters are showable
-                    for p in list(params.keys()):
-                        if type(params[p]) in [str, int, float, bool, list, dict]:
-                            params[p] = {"value": params[p],
-                                         "type": type(params[p]).__name__,
-                                         "options": opts[p] if p in opts else None}
-                        else:
-                            del params[p]
-
+            for p in params:
+                params[p] = {"value": params[p],
+                             "options": self.get_options(p, type(params[p]))}
         res = [{
             "name": a,
             "description": descriptions[a],
             "parameters": parameters[a],
+            "type": tt[a],
         } for a in descriptions]
         return res
+
+    def get_options(self, parameter, parameter_type):
+        if parameter in straight_forward:
+            options = self.__class__(parameter).to_list()
+            return options
+        else:
+            if parameter_type is bool:
+                return [True, False]
+            return None

@@ -175,3 +175,5 @@ CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
 CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH")
 
 CELERY_RESULT_BACKEND = 'django-db'
+
+WHALES_BACKEND = '../ballenas/src/'
