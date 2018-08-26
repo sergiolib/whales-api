@@ -54,7 +54,7 @@ class UsersPipelinesDeleteView(APIView):
 
 
 class UsersPipelinesLoadParameterView(APIView):
-    def get(self, request, parameter=''):
+    def get(self, request, parameter):
         if "pipeline_name" not in request.query_params:
             return Response(data=f"Pipeline name not submitted in the request", status=401)
 
@@ -93,6 +93,8 @@ class UsersPipelinesSaveParameterView(APIView):
         try:
             TaskResult.objects.get(task_id=q.task.task_id).delete()
         except TaskResult.DoesNotExist:
+            pass
+        except AttributeError:
             pass
         q.task = None  # Reset execution
         q.save()

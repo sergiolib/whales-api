@@ -172,7 +172,7 @@ CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
                       'authorization', 'x-csrftoken', 'user-agent', 'accept-encoding',
                       'cache-control')
 
-CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH")
+CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH", "PUT")
 
 CELERY_RESULT_BACKEND = 'django-db'
 
