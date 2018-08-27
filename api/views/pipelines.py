@@ -1,11 +1,10 @@
 from base64 import b64encode
 from glob import glob
 from mimetypes import guess_type
-from os import makedirs, listdir, rename
+from os import rename
 from os.path import join, basename
-from shutil import rmtree
+from shutil import copytree
 
-from django.conf import settings
 from django_celery_results.models import TaskResult
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -53,11 +52,6 @@ class UsersPipelinesDeleteView(APIView):
             return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
-        try:
-            rmtree(q.results_directory())
-            rmtree(q.logs_directory())
-        except FileNotFoundError:
-            pass
         q.delete()
         return Response()
 
@@ -119,7 +113,16 @@ class UsersPipelinesDuplicateView(APIView):
             return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
-        new_q = models.Pipeline(name=q.name + "_duplicate", owner=q.owner, parameters=q.parameters, pipeline_type=q.pipeline_type)
+        original_results_directory = q.results_directory()
+        original_logs_directory = q.logs_directory()
+        modifier = ""
+        while len(models.Pipeline.objects.filter(name=q.name + "_duplicate" + modifier)) > 0:
+            modifier = modifier + "0"
+        new_q = models.Pipeline(name=q.name + "_duplicate" + modifier, owner=q.owner, parameters=q.parameters, pipeline_type=q.pipeline_type)
+        new_results_directory = new_q.results_directory()
+        new_logs_directory = new_q.logs_directory()
+        copytree(original_logs_directory, new_logs_directory)
+        copytree(original_results_directory, new_results_directory)
         new_q.save()
         return Response()
 

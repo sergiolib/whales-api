@@ -1,7 +1,8 @@
 from os import makedirs
+from shutil import rmtree
 
 from api import models
-from django.db.models.signals import post_init, pre_save
+from django.db.models.signals import post_init, pre_save, pre_delete
 from django.dispatch import receiver
 from api import getters
 
@@ -26,3 +27,13 @@ def pipeline_create_results_dir(sender, instance, *args, **kwargs):
 @receiver(pre_save, sender=models.Pipeline)
 def pipeline_create_logs_dir(sender, instance, *args, **kwargs):
     makedirs(instance.logs_directory(), exist_ok=True)
+
+
+@receiver(pre_delete, sender=models.Pipeline)
+def pipeline_delete_dirs(sender, instance, **kwargs):
+    try:
+        rmtree(instance.results_directory())
+        rmtree(instance.logs_directory())
+    except FileNotFoundError:
+        pass
+
