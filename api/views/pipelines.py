@@ -1,5 +1,9 @@
-from os import makedirs
-from os.path import join
+from base64 import b64encode
+from glob import glob
+from mimetypes import guess_type
+from os import makedirs, listdir, rename
+from os.path import join, basename
+from shutil import rmtree
 
 from django.conf import settings
 from django_celery_results.models import TaskResult
@@ -49,6 +53,11 @@ class UsersPipelinesDeleteView(APIView):
             return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
+        try:
+            rmtree(q.results_directory())
+            rmtree(q.logs_directory())
+        except FileNotFoundError:
+            pass
         q.delete()
         return Response()
 
@@ -124,7 +133,13 @@ class UsersPipelinesRenameView(APIView):
             return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
+        original_results_directory = q.results_directory()
+        original_logs_directory = q.logs_directory()
         q.name = request.data["new_pipeline_name"]
+        new_results_directory = q.results_directory()
+        new_logs_directory = q.logs_directory()
+        rename(original_logs_directory, new_logs_directory)
+        rename(original_results_directory, new_results_directory)
         q.save()
         return Response()
 
@@ -141,10 +156,8 @@ class UsersPipelinesProcessView(APIView):
             return Response(data=f"Pipeline name not submitted in the request", status=402)
 
         # Launch pipeline asyncronously
-        location = join(settings.MEDIA_ROOT, q.owner.username, "pipelines")
-        makedirs(location, exist_ok=True)
         from .. import celery
-        task = celery.launch_pipeline.delay(q.pipeline_type, q.parameters, join(location, q.name))
+        task = celery.launch_pipeline.delay(q.pipeline_type, q.parameters, q.results_directory())
 
         # Doesn't work in test, anyway
         try:
@@ -176,7 +189,7 @@ class UsersPipelinesProcessView(APIView):
 
 class UsersPipelinesLogsView(APIView):
     def get(self, request):
-        """Get the pipeline state"""
+        """Get the pipeline logs files"""
         try:
             pipeline_name = request.query_params['pipeline_name']
             q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
@@ -184,6 +197,40 @@ class UsersPipelinesLogsView(APIView):
             return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
-        l = join(settings.MEDIA_ROOT, q.owner.username, "pipelines", q.name, "messages.log")
-        with open(l, 'r') as f:
-            return Response(f.read())
+        ld = q.logs_directory()
+        elements = glob(join(ld, "*"))
+        contents = []
+        for e in elements:
+            with open(e, 'r') as f:
+                contents.append(f.read())
+        elements = [{"name": basename(e), "content": c} for e, c in zip(elements, contents)]
+        return Response(elements)
+
+
+class UsersPipelinesResultsView(APIView):
+    def get(self, request):
+        """Get the pipeline results files"""
+        try:
+            pipeline_name = request.query_params['pipeline_name']
+            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
+        except models.Pipeline.DoesNotExist:
+            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
+        except KeyError:
+            return Response(data=f"Pipeline name not submitted in the request", status=402)
+        rd = q.results_directory()
+        elements = glob(join(rd, "*"))
+        contents = []
+        for e in elements:
+            mime = guess_type(e)[0]
+            if mime is not None:
+                if "image" in mime:
+                    with open(e, 'rb') as f:
+                        data = b64encode(f.read()).decode('utf-8').replace('\n', '')
+                        data_url = f"data:{mime};base64,{data}"
+                        contents.append(data_url)
+                elif "text" in mime:
+                    with open(e, 'r') as f:
+                        contents.append(f.read())
+
+        elements = [{"name": basename(e), "content": c} for e, c in zip(elements, contents)]
+        return Response(elements)

@@ -1,3 +1,6 @@
+from os.path import join
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django_celery_results.models import TaskResult
@@ -17,6 +20,12 @@ class Pipeline(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.owner})"
+
+    def results_directory(self):
+        return join(settings.MEDIA_ROOT, self.owner.username, "results", self.name)
+
+    def logs_directory(self):
+        return join(settings.MEDIA_ROOT, self.owner.username, "logs", self.name)
 
 
 class DataFile(models.Model):
