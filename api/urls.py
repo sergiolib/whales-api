@@ -1,3 +1,4 @@
+from django.conf.urls import url
 from django.urls import include, path
 from . import views
 
@@ -17,4 +18,6 @@ urlpatterns = [
     path('user_pipelines/process', views.UsersPipelinesProcessView.as_view()),
     path('user_pipelines/duplicate', views.UsersPipelinesDuplicateView.as_view()),
     path('user_pipelines/rename', views.UsersPipelinesRenameView.as_view()),
+
+    path('django-rq/', include('django_rq.urls'))
 ]

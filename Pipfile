@@ -27,6 +27,7 @@ billiard = {file = "https://github.com/celery/billiard/zipball/master"}
 amqp = {file = "https://github.com/celery/py-amqp/zipball/master"}
 kombu = {file = "https://github.com/celery/kombu/zipball/master"}
 vine = {file = "https://github.com/celery/vine/zipball/master"}
+django-task = "*"
 
 [dev-packages]
 

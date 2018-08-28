@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c6949a2de5873629e33d4f348a77f14120b12f61c9d620c444c89a407a39e83b"
+            "sha256": "b5e18bd49584d31c4f02728164e24da05a71245ad86a6c9373765a7d3014be13"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -101,6 +101,13 @@
             ],
             "version": "==3.0.4"
         },
+        "click": {
+            "hashes": [
+                "sha256:29f99fc6125fbc931b758dc053b3114e55c77a6e4c6c3a2674a2dc986016381d",
+                "sha256:f15516df478d5a56180fbf80e68f206010e6d160fc39fa508b65e035fd75130b"
+            ],
+            "version": "==6.7"
+        },
         "cryptography": {
             "hashes": [
                 "sha256:02602e1672b62e803e08617ec286041cc453e8d43f093a5f4162095506bc0beb",
@@ -150,10 +157,10 @@
         },
         "django-allauth": {
             "hashes": [
-                "sha256:7d9646e3560279d6294ebb4c361fef829708d106da697658cf158bf2ca57b474"
+                "sha256:02175aa1c2ddfd935a54011d1196d70c976647fc46f603f8b8758fc395b9d277"
             ],
             "index": "pypi",
-            "version": "==0.36.0"
+            "version": "==0.37.1"
         },
         "django-celery-results": {
             "hashes": [
@@ -184,6 +191,20 @@
             ],
             "index": "pypi",
             "version": "==0.9.3"
+        },
+        "django-rq": {
+            "hashes": [
+                "sha256:982ea7e636ebe328126acfd4cb977dc2cb5ed4181a4124b551052439560fc3e7",
+                "sha256:fd57a9a33d504dcce0e79a2f08bcf2fb8336d22ca1fff263ab54a530f7596a0a"
+            ],
+            "version": "==1.2.0"
+        },
+        "django-task": {
+            "hashes": [
+                "sha256:a00af38ff30dfe47096601934ba909dbd974bf302c7e1fac0f4131a1dc48fdda"
+            ],
+            "index": "pypi",
+            "version": "==1.3.1"
         },
         "djangorestframework": {
             "hashes": [
@@ -446,6 +467,13 @@
                 "sha256:e21232e2465808c0e892e0e4dbb8c2faafec16ac6dc067dd546e9b466f3deac8"
             ],
             "version": "==1.0.0"
+        },
+        "rq": {
+            "hashes": [
+                "sha256:5dd83625ca64b0dbf668ee65a8d38f3f5132aa9b64de4d813ff76f97db194b60",
+                "sha256:7ac5989a27bdff713dd40517498c1b3bf720f8ebc47305055496f653a29da899"
+            ],
+            "version": "==0.12.0"
         },
         "rsa": {
             "hashes": [

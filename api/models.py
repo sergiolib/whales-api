@@ -3,7 +3,7 @@ from os.path import join
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django_celery_results.models import TaskResult
+from django_task.models import Task
 from jsonfield import JSONField
 
 
@@ -16,7 +16,6 @@ class Pipeline(models.Model):
     name = models.CharField(max_length=1000)
     pipeline_type = models.CharField(max_length=100, blank=False)
     parameters = JSONField(blank=False, default={})
-    task = models.ForeignKey(TaskResult, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return f"{self.name} ({self.owner})"
@@ -26,6 +25,26 @@ class Pipeline(models.Model):
 
     def logs_directory(self):
         return join(settings.MEDIA_ROOT, self.owner.username, "logs", self.name)
+
+    def models_directory(self):
+        return join(settings.MEDIA_ROOT, self.owner.username, "models", self.name)
+
+
+class LaunchPipelineTask(Task):
+    TASK_QUEUE = "default"
+    TASK_TIMEOUT = 3600
+    LOG_TO_FIELD = True
+    LOG_TO_FILE = False
+    DEFAULT_VERBOSITY = 2
+
+    pipeline_parameters = models.CharField(max_length=10000, default="{}")
+    pipeline_desc = models.CharField(max_length=1000, default="")
+    pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
+
+    @staticmethod
+    def get_jobfunc():
+        from .jobs import LaunchPipelineJob
+        return LaunchPipelineJob
 
 
 class DataFile(models.Model):

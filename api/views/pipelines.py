@@ -1,3 +1,4 @@
+import json
 from base64 import b64encode
 from glob import glob
 from mimetypes import guess_type
@@ -5,11 +6,13 @@ from os import rename
 from os.path import join, basename
 from shutil import copytree
 
-from django_celery_results.models import TaskResult
+from django.conf import settings
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from api import models
 from api import getters
+from api.models import LaunchPipelineTask
 
 
 class UsersPipelinesView(APIView):
@@ -93,13 +96,6 @@ class UsersPipelinesSaveParameterView(APIView):
             }
         except KeyError:
             return Response()
-        try:
-            TaskResult.objects.get(task_id=q.task.task_id).delete()
-        except TaskResult.DoesNotExist:
-            pass
-        except AttributeError:
-            pass
-        q.task = None  # Reset execution
         q.save()
         return Response()
 
@@ -147,9 +143,48 @@ class UsersPipelinesRenameView(APIView):
         return Response()
 
 
+def transform_parameters(parameters):
+    new_params = {}
+    data_files_directory = join(settings.MEDIA_ROOT, "{owner}", "data_files")
+    labels_files_directory = join(settings.MEDIA_ROOT, "{owner}", "labels_files")
+    for i in parameters:
+        if i == "input_data":
+            input_data = parameters[i]["value"]
+            new_input_data = []
+            for j in input_data:
+                new_input_data.append({
+                    "file_name": join(data_files_directory.format(owner=j['owner']), j["name"]),
+                    "data_file": "audio",
+                    "formatter": "aif"
+                })
+            new_params[i] = new_input_data
+        elif i == "input_labels":
+            input_labels = parameters[i]["value"]
+            new_input_labels = []
+            for j in input_labels:
+                new_input_labels.append({
+                    "labels_file": join(labels_files_directory.format(owner=j['owner']), j["name"]),
+                    "labels_formatter": "csv"
+                })
+            new_params[i] = new_input_labels
+        elif i == "machine_learning":
+            new_params[i] = parameters[i]["value"]
+        elif i == "pre_processing" or i == "features_extractors" or i == "performance_indicators":
+            original = parameters[i]["value"]
+            new = []
+            for j in original:
+                params = j["parameters"]
+                new.append({
+                    "method": j["method"],
+                    "parameters": {a: params[a]['value'] for a in params}
+                })
+            new_params[i] = new
+    return new_params
+
+
 class UsersPipelinesProcessView(APIView):
     def post(self, request):
-        """Launch a new pipeline"""
+        """Launch a new pipeline. Reuse task object if possible"""
         try:
             pipeline_name = request.data['pipeline_name']
             q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
@@ -158,16 +193,22 @@ class UsersPipelinesProcessView(APIView):
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
 
-        # Launch pipeline asyncronously
-        from .. import celery
-        task = celery.launch_pipeline.delay(q.pipeline_type, q.parameters, q.results_directory())
+        # Try to get the task object from DB, but only if it is in FINISHED or FAILURE status
+        parameters = transform_parameters(q.parameters)
+        task = LaunchPipelineTask.objects.get_or_create(
+            pipeline=q
+        )[0]
+        task.pipeline_parameters = json.dumps(parameters)
+        task.pipeline_desc = q.pipeline_type
+        task.results_directory = q.results_directory()
+        task.logs_directory = q.logs_directory()
+        task.job_id = ""
+        task.save()
+        task.run(is_async=False)
 
-        # Doesn't work in test, anyway
-        try:
-            q.task = TaskResult.objects.get(task_id=task.id)
-        except TaskResult.DoesNotExist:
-            pass
+        q.task = task
         q.save()
+
         return Response()
 
     def get(self, request):
@@ -179,15 +220,20 @@ class UsersPipelinesProcessView(APIView):
             return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
-        if q.task is None:
-            return Response(data=0)
-        task_result = TaskResult.objects.get(task_id=q.task.task_id)
-        if task_result.status == "SUCCESS":
-            return Response(data=3)
+        try:
+            task_result = LaunchPipelineTask.objects.get(pipeline=q)
+        except LaunchPipelineTask.DoesNotExist:
+            return Response(data=(0, ""))
+        if task_result.job_id is None:
+            return Response(data=(0, ""))
+        elif task_result.status == "SUCCESS":
+            return Response(data=(3, ""))
         elif task_result.status == "FAILURE":
-            return Response(data=2)
+            return Response(data=(2, task_result.failure_reason))
         elif task_result.status == "STARTED":
-            return Response(data=1)
+            return Response(data=(1, ""))
+        elif task_result.status == "PENDING":
+            return Response(data=(1, ""))
 
 
 class UsersPipelinesLogsView(APIView):
@@ -205,7 +251,7 @@ class UsersPipelinesLogsView(APIView):
         contents = []
         for e in elements:
             with open(e, 'r') as f:
-                contents.append(f.read())
+                contents.append(f.read().replace("\n", "<br />"))
         elements = [{"name": basename(e), "content": c} for e, c in zip(elements, contents)]
         return Response(elements)
 

@@ -33,12 +33,13 @@ INSTALLED_APPS = [
     'rest_auth',
     'allauth',
     'allauth.account',
-    #  'rest_auth.registration',
+    'rest_auth.registration',
     'api',
     'corsheaders',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'django_celery_results',
+    'django_rq',
+    'django_task',
 ]
 
 MIDDLEWARE = [
@@ -174,6 +175,11 @@ CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
 
 CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH", "PUT")
 
-CELERY_RESULT_BACKEND = 'django-db'
-
 WHALES_BACKEND = '../ballenas/src/'
+
+RQ_QUEUES = {'default': {
+        'HOST': 'localhost',
+        'PORT': 6379,
+        'DB': 0,
+        'DEFAULT_TIMEOUT': 360,
+    }}

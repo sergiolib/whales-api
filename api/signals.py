@@ -29,6 +29,11 @@ def pipeline_create_logs_dir(sender, instance, *args, **kwargs):
     makedirs(instance.logs_directory(), exist_ok=True)
 
 
+@receiver(pre_save, sender=models.Pipeline)
+def pipeline_create_logs_dir(sender, instance, *args, **kwargs):
+    makedirs(instance.models_directory(), exist_ok=True)
+
+
 @receiver(pre_delete, sender=models.Pipeline)
 def pipeline_delete_dirs(sender, instance, **kwargs):
     try:
