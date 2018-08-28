@@ -93,6 +93,7 @@ class UsersPipelinesSaveParameterView(APIView):
             q.parameters[parameter] = {
                 "type": request.data.get("type", ""),
                 "value": request.data["value"],
+                "options": request.data.get("options", [])
             }
         except KeyError:
             return Response()

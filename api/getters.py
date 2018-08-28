@@ -30,7 +30,9 @@ class GettersData:
 
             for p in params:
                 params[p] = {"value": params[p],
-                             "options": self.get_options(p, type(params[p]))}
+                             "options": opts.get(p, [])}
+                if type(params[p]["value"]) is bool:
+                    params[p]["options"] = [True, False]
         res = [{
             "name": a,
             "description": descriptions[a],
@@ -38,12 +40,3 @@ class GettersData:
             "type": tt[a],
         } for a in descriptions]
         return res
-
-    def get_options(self, parameter, parameter_type):
-        if parameter in straight_forward:
-            options = self.__class__(parameter).to_list()
-            return options
-        else:
-            if parameter_type is bool:
-                return [True, False]
-            return None
