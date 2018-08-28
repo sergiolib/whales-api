@@ -26,7 +26,7 @@ class GettersData:
             descriptions[a] = instance.description
             params = parameters[a] = instance.parameters
             opts = options[a] = instance.parameters_options
-            t = tt[a] = instance.type if hasattr(instance, "type") else None
+            tt[a] = instance.type if hasattr(instance, "type") else None
 
             for p in params:
                 params[p] = {"value": params[p],
