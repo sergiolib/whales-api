@@ -37,8 +37,14 @@ def pipeline_create_logs_dir(sender, instance, *args, **kwargs):
 @receiver(pre_delete, sender=models.Pipeline)
 def pipeline_delete_dirs(sender, instance, **kwargs):
     try:
-        rmtree(instance.results_directory())
         rmtree(instance.logs_directory())
     except FileNotFoundError:
         pass
-
+    try:
+        rmtree(instance.models_directory())
+    except FileNotFoundError:
+        pass
+    try:
+        rmtree(instance.results_directory())
+    except FileNotFoundError:
+        pass

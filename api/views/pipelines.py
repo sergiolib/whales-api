@@ -4,7 +4,7 @@ from glob import glob
 from mimetypes import guess_type
 from os import rename
 from os.path import join, basename
-from shutil import copytree
+from shutil import copytree, copy
 
 from django.conf import settings
 from rest_framework.response import Response
@@ -42,6 +42,7 @@ class UsersPipelinesCreateView(APIView):
             pipeline_type=desired_type,
             parameters=default_parameters
         )
+        pip.parameters["trained_model_pipeline"] = {"value": ""}
         pip.save()
         return Response()
 
@@ -97,7 +98,26 @@ class UsersPipelinesSaveParameterView(APIView):
             }
         except KeyError:
             return Response()
+
+        if parameter == "trained_model_pipeline":
+            training_pipeline_name = request.data["value"]
+            training_q = models.Pipeline.objects.get(owner=request.user, name=training_pipeline_name)
+
+            trained_models = glob(join(training_q.models_directory(), "*"))
+            for tf in trained_models:
+                copy(tf, q.models_directory())
+            # ML
+            q.parameters["machine_learning"] = training_q.parameters["machine_learning"]
+            # FE
+            q.parameters["features_extractors"] = training_q.parameters["features_extractors"]
+            # PP
+            q.parameters["pre_processing"] = training_q.parameters["pre_processing"]
+
+            # This instruction setting
+            q.parameters["trained_model_pipeline"] = {"value": training_pipeline_name}
+
         q.save()
+
         return Response()
 
 
@@ -204,6 +224,7 @@ class UsersPipelinesProcessView(APIView):
         task.results_directory = q.results_directory()
         task.logs_directory = q.logs_directory()
         task.job_id = ""
+        task.failure_reason = ""
         task.save()
         task.run(is_async=False)
 
@@ -232,7 +253,10 @@ class UsersPipelinesProcessView(APIView):
         elif task_result.status == "FAILURE":
             return Response(data=(2, task_result.failure_reason))
         elif task_result.status == "STARTED":
-            return Response(data=(1, ""))
+            if len(task_result.failure_reason) > 0:
+                return Response(data=(2, task_result.failure_reason))
+            else:
+                return Response(data=(1, ""))
         elif task_result.status == "PENDING":
             return Response(data=(1, ""))
 
