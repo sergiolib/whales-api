@@ -1,6 +1,6 @@
 from .pipelines import UsersPipelinesView, UsersPipelinesCreateView, UsersPipelinesDeleteView, \
     UsersPipelinesDuplicateView, UsersPipelinesRenameView, UsersPipelinesSaveParameterView, \
     UsersPipelinesLoadParameterView, UsersPipelinesProcessView, UsersPipelinesLogsView, \
-    UsersPipelinesResultsView
+    UsersPipelinesResultsView, UsersPipelinesPublicView
 from .store import StoreDataView, StoreLabelsView, GetDataView, GetLabelsView
 from .options import GetScopeOptionsView

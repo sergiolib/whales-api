@@ -19,8 +19,10 @@ class UsersPipelinesView(APIView):
     def get(self, request):
         if request.user.is_anonymous:
             return Response(f"Must login to be able to see the user's pipelines", status=400)
-        q = models.Pipeline.objects.filter(owner=request.user)
-        q = [{'name': i.name, 'parameters': i.parameters, 'type': i.pipeline_type} for i in q]
+        private_pipelines = models.Pipeline.objects.filter(owner=request.user)
+        public_pipelines = models.Pipeline.objects.filter(public=True).exclude(owner=request.user)
+        q = private_pipelines | public_pipelines
+        q = [{'name': i.name, 'parameters': i.parameters, 'type': i.pipeline_type, "public": i.public, "owner": i.owner.email} for i in q]
         return Response(data=q)
 
 
@@ -53,10 +55,24 @@ class UsersPipelinesDeleteView(APIView):
             pipeline_name = request.query_params["pipeline_name"]
             q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
         except models.Pipeline.DoesNotExist:
-            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
+            return Response(data=f"Pipeline named {pipeline_name} owned by {request.user.email} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         q.delete()
+        return Response()
+
+
+class UsersPipelinesPublicView(APIView):
+    def post(self, request):
+        try:
+            pipeline_name = request.query_params["pipeline_name"]
+            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
+        except models.Pipeline.DoesNotExist:
+            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
+        except KeyError:
+            return Response(data=f"Pipeline name not submitted in the request", status=402)
+        q.public = request.data["public"]
+        q.save()
         return Response()
 
 
@@ -125,9 +141,11 @@ class UsersPipelinesDuplicateView(APIView):
     def post(self, request):
         try:
             pipeline_name = request.data['pipeline_name']
-            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
+            owner = request.data['pipeline_owner']
+            owner = models.User.objects.get(email=owner)
+            q = models.Pipeline.objects.get(owner=owner, name=pipeline_name)
         except models.Pipeline.DoesNotExist:
-            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
+            return Response(data=f"Pipeline named {pipeline_name} owned by {owner.email} does not exist", status=401)
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         original_results_directory = q.results_directory()
@@ -135,7 +153,7 @@ class UsersPipelinesDuplicateView(APIView):
         modifier = ""
         while len(models.Pipeline.objects.filter(name=q.name + "_duplicate" + modifier)) > 0:
             modifier = modifier + "0"
-        new_q = models.Pipeline(name=q.name + "_duplicate" + modifier, owner=q.owner, parameters=q.parameters, pipeline_type=q.pipeline_type)
+        new_q = models.Pipeline(name=q.name + "_duplicate" + modifier, owner=request.user, parameters=q.parameters, pipeline_type=q.pipeline_type)
         new_results_directory = new_q.results_directory()
         new_logs_directory = new_q.logs_directory()
         copytree(original_logs_directory, new_logs_directory)

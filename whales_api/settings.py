@@ -127,6 +127,8 @@ STATIC_URL = '/static/'
 
 CLIENT_ID = "589136006596-dklsl1hbfu6floe97v724k67cjajcmrj.apps.googleusercontent.com"
 
+USER_FILES = "/home/ftobar/whales/files"
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
@@ -149,11 +151,25 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-MEDIA_ROOT = "/whales_user_data"
+MEDIA_ROOT = "/home/ftobar/whales/user_data"
 
 AUTH_USER_MODEL = "api.User"
 
 WHALES_BACKEND = '../../backend/src/'
+
+CSRF_TRUSTED_ORIGINS = (
+    'http://localhost:8000',
+    'http://10.13.1.124:8000'
+)
+
+CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
+                      'authorization', 'x-csrftoken', 'user-agent', 'accept-encoding',
+                      'cache-control')
+
+CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH", "PUT")
+
+WHALES_BACKEND = '../backend/src/'
+>>>>>>> a15fe63e371c770ec0003da8349d9167efe58872
 
 RQ_QUEUES = {'default': {
         'HOST': 'localhost',
@@ -161,3 +177,8 @@ RQ_QUEUES = {'default': {
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,
     }}
+<<<<<<< HEAD
+=======
+
+ACCOUNT_EMAIL_MAX_LENGTH = 190
+>>>>>>> a15fe63e371c770ec0003da8349d9167efe58872

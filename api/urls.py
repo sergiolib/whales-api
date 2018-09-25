@@ -1,4 +1,3 @@
-from django.conf.urls import url
 from django.urls import include, path
 from . import views
 
@@ -11,6 +10,7 @@ urlpatterns = [
     path('user_pipelines', views.UsersPipelinesView.as_view()),
     path('user_pipelines/create', views.UsersPipelinesCreateView.as_view()),
     path('user_pipelines/delete', views.UsersPipelinesDeleteView.as_view()),
+    path('user_pipelines/public', views.UsersPipelinesPublicView.as_view()),
     path('user_pipelines/logs', views.UsersPipelinesLogsView.as_view()),
     path('user_pipelines/results', views.UsersPipelinesResultsView.as_view()),
     path('user_pipelines/save/<str:parameter>', views.UsersPipelinesSaveParameterView.as_view()),
