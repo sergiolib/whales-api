@@ -169,7 +169,6 @@ CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
 CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH", "PUT")
 
 WHALES_BACKEND = '../backend/src/'
->>>>>>> a15fe63e371c770ec0003da8349d9167efe58872
 
 RQ_QUEUES = {'default': {
         'HOST': 'localhost',
@@ -177,8 +176,3 @@ RQ_QUEUES = {'default': {
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,
     }}
-<<<<<<< HEAD
-=======
-
-ACCOUNT_EMAIL_MAX_LENGTH = 190
->>>>>>> a15fe63e371c770ec0003da8349d9167efe58872
