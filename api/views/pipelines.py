@@ -20,7 +20,7 @@ class UsersPipelinesView(APIView):
         if request.user.is_anonymous:
             return Response(f"Must login to be able to see the user's pipelines", status=400)
         q = models.Pipeline.objects.filter(owner=request.user)
-        q = [{'name': i.name, 'parameters': i.parameters, 'type': i.pipeline_type} for i in q]
+        q = [{'name': i.name, 'parameters': i.parameters, 'type': i.pipeline_type, "public": i.public} for i in q]
         return Response(data=q)
 
 
@@ -57,6 +57,20 @@ class UsersPipelinesDeleteView(APIView):
         except KeyError:
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         q.delete()
+        return Response()
+
+
+class UsersPipelinesPublicView(APIView):
+    def post(self, request):
+        try:
+            pipeline_name = request.query_params["pipeline_name"]
+            q = models.Pipeline.objects.get(owner=request.user, name=pipeline_name)
+        except models.Pipeline.DoesNotExist:
+            return Response(data=f"Pipeline named {pipeline_name} does not exist", status=401)
+        except KeyError:
+            return Response(data=f"Pipeline name not submitted in the request", status=402)
+        q.public = request.data["public"]
+        q.save()
         return Response()
 
 

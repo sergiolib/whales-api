@@ -2,7 +2,7 @@ import matplotlib
 from django.conf import settings
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), settings.WHALES_BACKEND))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", settings.WHALES_BACKEND))
 
 from whales.modules.pipelines import getters as backend_getters
 straight_forward = ['formatters', 'pre_processing', 'features_extractors', 'pipelines', 'data_files',

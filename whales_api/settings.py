@@ -127,7 +127,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CLIENT_ID = "492964876947-tf432erte1q8n4p63im51gooid0m1t4p.apps.googleusercontent.com"
+CLIENT_ID = "589136006596-4polkrs6s9vlkjoahh4mnspo8cibpu3g.apps.googleusercontent.com"
 
 USER_FILES = "/Volumes/HDD/ballenas_data"
 
@@ -153,7 +153,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-MEDIA_ROOT = "/Volumes/HDD/ballenas_data/"
+MEDIA_ROOT = "/home/sliberman/Documents/data/whales_data/"
 
 AUTH_USER_MODEL = "api.User"
 
@@ -175,7 +175,7 @@ CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
 
 CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH", "PUT")
 
-WHALES_BACKEND = '../ballenas/src/'
+WHALES_BACKEND = '../backend/src/'
 
 RQ_QUEUES = {'default': {
         'HOST': 'localhost',
@@ -183,3 +183,5 @@ RQ_QUEUES = {'default': {
         'DB': 0,
         'DEFAULT_TIMEOUT': 360,
     }}
+
+ACCOUNT_EMAIL_MAX_LENGTH = 190
