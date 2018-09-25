@@ -13,9 +13,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'z@h_7j6g9hy)+_*bkt&=4d-ew!mpl(cpztxj9yt-(8x=iqj1wj'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["whales.cmm.uchile.cl"]
 
 
 # Application definition
@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'rest_auth.registration',
     'api',
-    'corsheaders',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'django_rq',
@@ -43,7 +42,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -82,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'whales',
         'USER': 'whales',
-        'PASSWORD': 'ILoveWhales',
+        'PASSWORD': 'yJtxWm39aFgPuKvk',
         'HOST': 'localhost',
         'PORT': '',
     }
@@ -127,9 +125,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CLIENT_ID = "492964876947-tf432erte1q8n4p63im51gooid0m1t4p.apps.googleusercontent.com"
-
-USER_FILES = "/Volumes/HDD/ballenas_data"
+CLIENT_ID = "589136006596-dklsl1hbfu6floe97v724k67cjajcmrj.apps.googleusercontent.com"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -153,29 +149,11 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-MEDIA_ROOT = "/Volumes/HDD/ballenas_data/"
+MEDIA_ROOT = "/whales_user_data"
 
 AUTH_USER_MODEL = "api.User"
 
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = (
-    'localhost:8080',
-    '10.13.1.124:8080'
-)
-
-CSRF_TRUSTED_ORIGINS = (
-    'http://localhost:8000',
-    'http://10.13.1.124:8000'
-)
-
-CORS_ALLOW_HEADERS = ('x-requested-with', 'content-type', 'accept', 'origin',
-                      'authorization', 'x-csrftoken', 'user-agent', 'accept-encoding',
-                      'cache-control')
-
-CORS_ALLOW_METHODS = ("OPTIONS", "GET", "POST", "DELETE", "PATCH", "PUT")
-
-WHALES_BACKEND = '../ballenas/src/'
+WHALES_BACKEND = '../../backend/src/'
 
 RQ_QUEUES = {'default': {
         'HOST': 'localhost',
