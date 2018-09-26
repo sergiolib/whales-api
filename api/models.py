@@ -4,7 +4,6 @@ from os.path import join
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
 from django_task.models import Task
 from jsonfield import JSONField
 

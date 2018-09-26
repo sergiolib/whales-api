@@ -18,8 +18,8 @@ from api.models import LaunchPipelineTask
 
 
 class UsersPipelinesView(APIView):
-    authentication_classes = ()
-    permission_classes = (permissions.AllowAny,)
+    authentication_classes = (authentication.BasicAuthentication, authentication.TokenAuthentication)
+    permission_classes = (permissions.BasePermission,)
 
     def get(self, request):
         private_pipelines = models.Pipeline.objects.none()
@@ -42,7 +42,7 @@ class UsersPipelinesCreateView(APIView):
         desired_name = request.data["new_pipeline_name"]
         desired_type = request.data["new_pipeline_type"]
         # Check it doesn't exist yet
-        q = models.Pipeline.objects.filter(owner=request.user, name=desired_name)
+        q = models.Pipeline.objects.filter(name=desired_name)
         if len(q) > 0:
             return Response(data="Pipeline with that name already exists", status=400)
 
