@@ -29,11 +29,14 @@ class UsersPipelinesView(APIView):
         except:
             pass
         try:
-            public_pipelines = models.Pipeline.objects.filter(public=True).exclude(owner=request.user)
+            public_pipelines = models.Pipeline.objects.filter(public=True)
         except:
             pass
-        q = private_pipelines | public_pipelines
-        q = [{'name': i.name, 'parameters': i.parameters, 'type': i.pipeline_type, "public": i.public, "owner": i.owner.email} for i in q]
+        q = (private_pipelines | public_pipelines).distinct()
+        q = [{'name': i.name, 'parameters': i.parameters, 'type': i.pipeline_type, "public": i.public, "owner": i.owner.email, "created_on": i.created_on} for i in q]
+        q = sorted(q, key=lambda x: x["created_on"])
+        q.reverse()
+        [i.update({"created_on": i["created_on"].strftime("%Y-%m-%d %H:%M:%S %Z")}) for i in q]
         return Response(data=q)
 
 
