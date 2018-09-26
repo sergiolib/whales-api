@@ -22,8 +22,8 @@ class UsersPipelinesView(APIView):
     permission_classes = (permissions.AllowAny,)
 
     def get(self, request):
-        private_pipelines = EmptyQuerySet()
-        public_pipelines = EmptyQuerySet()
+        private_pipelines = EmptyQuerySet
+        public_pipelines = EmptyQuerySet
         try:
             private_pipelines = models.Pipeline.objects.filter(owner=request.user)
         except:
