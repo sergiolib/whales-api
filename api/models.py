@@ -1,8 +1,10 @@
+import datetime
 from os.path import join
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 from django_task.models import Task
 from jsonfield import JSONField
 
@@ -17,6 +19,7 @@ class Pipeline(models.Model):
     pipeline_type = models.CharField(max_length=100, blank=False)
     parameters = JSONField(blank=False, default={})
     public = models.BooleanField(default=False)
+    created_on = models.DateTimeField(auto_now_add=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.owner})"
