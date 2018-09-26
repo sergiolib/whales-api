@@ -7,6 +7,7 @@ from os.path import join, basename
 from shutil import copytree, copy
 
 from django.conf import settings
+from django.db.models.query import EmptyQuerySet
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -17,10 +18,16 @@ from api.models import LaunchPipelineTask
 
 class UsersPipelinesView(APIView):
     def get(self, request):
-        if request.user.is_anonymous:
-            return Response(f"Must login to be able to see the user's pipelines", status=400)
-        private_pipelines = models.Pipeline.objects.filter(owner=request.user)
-        public_pipelines = models.Pipeline.objects.filter(public=True).exclude(owner=request.user)
+        private_pipelines = EmptyQuerySet()
+        public_pipelines = EmptyQuerySet()
+        try:
+            private_pipelines = models.Pipeline.objects.filter(owner=request.user)
+        except:
+            pass
+        try:
+            public_pipelines = models.Pipeline.objects.filter(public=True).exclude(owner=request.user)
+        except:
+            pass
         q = private_pipelines | public_pipelines
         q = [{'name': i.name, 'parameters': i.parameters, 'type': i.pipeline_type, "public": i.public, "owner": i.owner.email} for i in q]
         return Response(data=q)
