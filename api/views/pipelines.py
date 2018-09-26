@@ -8,6 +8,7 @@ from shutil import copytree, copy
 
 from django.conf import settings
 from django.db.models.query import EmptyQuerySet
+from rest_framework import authentication, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -17,6 +18,9 @@ from api.models import LaunchPipelineTask
 
 
 class UsersPipelinesView(APIView):
+    authentication_classes = ()
+    permission_classes = (permissions.AllowAny,)
+
     def get(self, request):
         private_pipelines = EmptyQuerySet()
         public_pipelines = EmptyQuerySet()
