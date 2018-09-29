@@ -196,8 +196,14 @@ class UsersPipelinesRenameView(APIView):
         q.name = request.data["new_pipeline_name"]
         new_results_directory = q.results_directory()
         new_logs_directory = q.logs_directory()
-        rename(original_logs_directory, new_logs_directory)
-        rename(original_results_directory, new_results_directory)
+        try:
+            rename(original_logs_directory, new_logs_directory)
+        except FileNotFoundError:
+            pass
+        try:
+            rename(original_results_directory, new_results_directory)
+        except FileNotFoundError:
+            pass
         q.save()
         return Response()
 
