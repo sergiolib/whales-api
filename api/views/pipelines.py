@@ -164,18 +164,24 @@ class UsersPipelinesDuplicateView(APIView):
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         original_results_directory = q.results_directory()
         original_logs_directory = q.logs_directory()
+        original_models_directory = q.models_directory()
         modifier = ""
         while len(models.Pipeline.objects.filter(name=q.name + "_duplicate" + modifier)) > 0:
             modifier = modifier + "0"
         new_q = models.Pipeline(name=q.name + "_duplicate" + modifier, owner=request.user, parameters=q.parameters, pipeline_type=q.pipeline_type)
         new_results_directory = new_q.results_directory()
         new_logs_directory = new_q.logs_directory()
+        new_models_directory = new_q.models_directory()
         try:
             copytree(original_logs_directory, new_logs_directory)
         except FileNotFoundError:
             pass
         try:
             copytree(original_results_directory, new_results_directory)
+        except FileNotFoundError:
+            pass
+        try:
+            copytree(original_models_directory, new_models_directory)
         except FileNotFoundError:
             pass
         new_q.save()
@@ -193,15 +199,21 @@ class UsersPipelinesRenameView(APIView):
             return Response(data=f"Pipeline name not submitted in the request", status=402)
         original_results_directory = q.results_directory()
         original_logs_directory = q.logs_directory()
+        original_models_directory = q.models_directory()
         q.name = request.data["new_pipeline_name"]
         new_results_directory = q.results_directory()
         new_logs_directory = q.logs_directory()
+        new_models_directory = q.models_directory()
         try:
             rename(original_logs_directory, new_logs_directory)
         except FileNotFoundError:
             pass
         try:
             rename(original_results_directory, new_results_directory)
+        except FileNotFoundError:
+            pass
+        try:
+            rename(original_models_directory, new_models_directory)
         except FileNotFoundError:
             pass
         q.save()
