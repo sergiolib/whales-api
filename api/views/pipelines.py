@@ -170,8 +170,14 @@ class UsersPipelinesDuplicateView(APIView):
         new_q = models.Pipeline(name=q.name + "_duplicate" + modifier, owner=request.user, parameters=q.parameters, pipeline_type=q.pipeline_type)
         new_results_directory = new_q.results_directory()
         new_logs_directory = new_q.logs_directory()
-        copytree(original_logs_directory, new_logs_directory)
-        copytree(original_results_directory, new_results_directory)
+        try:
+            copytree(original_logs_directory, new_logs_directory)
+        except FileNotFoundError:
+            pass
+        try:
+            copytree(original_results_directory, new_results_directory)
+        except FileNotFoundError:
+            pass
         new_q.save()
         return Response()
 
